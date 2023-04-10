@@ -158,7 +158,7 @@ static void *find_fit(size_t asize)
     /* 힙의 시작부터 / 크기가 > 0일때동안, 즉 에필로그 헤더가 나오기 전까지 / 다음 블록으로 이동하면서 */
     for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp))
     {
-        if (GET_SIZE(HDRP(bp)) >= asize && (!GET_ALLOC(HDRP(bp))))
+        if ((!GET_ALLOC(HDRP(bp))) && GET_SIZE(HDRP(bp)) >= asize) /* 앞의 조건에서 걸리면 이후 조건 안 함 */
         {
             return bp;
         }
@@ -246,7 +246,7 @@ void *mm_realloc(void *ptr, size_t size)
     if (newptr == NULL)
         return NULL;
     // copySize = *(size_t *)((char *)oldptr - SIZE_T_SIZE);
-    copySize = GET_SIZE(HDRP(oldptr)) - DSIZE; /* 기존에 할당된 블록의 사이즈 */
+    copySize = GET_SIZE(HDRP(oldptr)) - DSIZE; /* 기존에 할당된 블록의 사이즈. */
     if (size < copySize)
         copySize = size;
     memcpy(newptr, oldptr, copySize);
