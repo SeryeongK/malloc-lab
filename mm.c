@@ -204,12 +204,12 @@ void *mm_malloc(size_t size)
     if (size <= DSIZE)
         asize = 2 * DSIZE; /* 왜 16바이트? 정렬조건인 더블 워드를 충족하기 위한 8바이트, 헤더와 푸터 오버헤드를 위한 8바이트 */
     else
-        asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);
+        asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE); /* 값으로 나눴을 때 나머지가 될 수 있는 수의 최댓값은 값-1 */
 
     /* Search the free list for a fit */
     if ((bp = find_fit(asize)) != NULL)
     {
-        place(bp, asize); /* 할당하기 */
+        place(bp, asize); /* 배치하기 */
         return bp;
     }
 
