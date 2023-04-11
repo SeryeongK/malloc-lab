@@ -196,11 +196,10 @@ int mm_init(void)
     return 0;
 }
 
-static void *find_fit(size_t asize)
+static void *first_fit(size_t asize)
 {
     void *bp;
-    /* First-fit */
-    /* 힙의 시작부터 / 다음 블록이 NULL이 아닐 때까지, 즉 가용리스트의 마지막 블록까지 / 가용리스트 안의 다음 블록으로 이동하면서 */
+    /* 가용 리스트의 시작부터 / 다음 블록이 NULL이 아닐 때까지, 즉 가용리스트의 마지막 블록까지 / 가용리스트 안의 다음 블록으로 이동하면서 */
     for (bp = free_listp; GET_ALLOC(HDRP(bp)) != 1; bp = GET_NEXT(bp))
     {
         if (GET_SIZE(HDRP(bp)) >= asize) /* 앞의 조건에서 걸리면 이후 조건 안 함 */
@@ -209,6 +208,32 @@ static void *find_fit(size_t asize)
         }
     }
     return NULL; /* No fit */
+}
+
+static void *best_fit(size_t asize)
+{
+    void *bp;
+    void *best = NULL;
+    /* 가용리스트의 두번째 블록부터 / 마지막 블록까지 / 다음 블록으로 이동하면서 */
+    for (bp = free_listp; GET_ALLOC(HDRP(bp)) != 1; bp = GET_NEXT(bp))
+    {
+        if (asize <= GET_SIZE(HDRP(bp)))
+        {
+            if (best == NULL)
+            {
+                best = bp;
+            }
+            else if (GET_SIZE(HDRP(bp)) <= GET_SIZE(HDRP(best)))
+            {
+                best = bp;
+            }
+        }
+    }
+    if (best != NULL)
+    {
+        return best;
+    }
+    return NULL;
 }
 
 static void place(void *bp, size_t asize)
@@ -253,7 +278,7 @@ void *mm_malloc(size_t size)
         asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE); /* 값으로 나눴을 때 나머지가 될 수 있는 수의 최댓값은 값-1 */
 
     /* Search the free list for a fit */
-    if ((bp = find_fit(asize)) != NULL)
+    if ((bp = best_fit(asize)) != NULL)
     {
         place(bp, asize); /* 배치하기 */
         return bp;
