@@ -90,6 +90,11 @@ void removeBlock(void *bp)
         free_listp = GET_NEXT(bp);     /* bp 다음 블록을 첫번째 블록으로 만들기 */
         GET_PREV(GET_NEXT(bp)) = NULL; /* bp 다음 블록의 이전을 NULL로 */
     }
+    else if (GET_NEXT(bp) == NULL) /* bp가 가용리스트의 마지막이면 */
+    {
+        GET_NEXT(GET_PREV(bp)) = NULL;
+        GET_PREV(bp) = NULL;
+    }
     else
     {
         /* bp의 이전 블록과 다음 블록 이어주기 */
@@ -176,8 +181,9 @@ int mm_init(void)
         return -1;
     PUT(heap_listp, 0);                                /* Alignment padding */
     PUT(heap_listp + (1 * WSIZE), PACK(2 * DSIZE, 1)); /* Prologue header */
-    PUT(heap_listp + (2 * WSIZE), NULL);               // 프롤로그 NEXT NULL로 초기화
-    PUT(heap_listp + (3 * WSIZE), NULL);               // 프롤로그 PREV NULL로 초기화
+    /* 왜 NEXT를 앞으로? payload 자리를 찾아가는 코드로 구성되어 있기 때문에 해당 자리에서 바로 찾을 수 있는 곳에 NEXT를 둬서 최대한의 동작을 줄임 */
+    PUT(heap_listp + (2 * WSIZE), NULL);               /* 프롤로그 NEXT NULL로 초기화. */
+    PUT(heap_listp + (3 * WSIZE), NULL);               /* 프롤로그 PREV NULL로 초기화 */
     PUT(heap_listp + (4 * WSIZE), PACK(2 * DSIZE, 1)); /* Prologue footer */
     PUT(heap_listp + (5 * WSIZE), PACK(0, 1));         /* Epilogue header */
 
